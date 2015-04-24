@@ -15,6 +15,18 @@ dU = lambda r, eps: 24*eps*(-2*(sig/r)**13 + (sig/r)**7)
 g = lambda r, b, eps: b/(r*r*sqrt(1.0 - U(r, eps)/E0 - (b/r)**2))
 
 
+
+def F(a,b,c):
+    return (
+        lambda x: (x-a)*(x-b)*(x-c),
+        lambda x: a*b + a*c + b*c - 2*(a + b + c)*x + 3*x**2,
+        lambda x: -2*(a + b + c - 3*x)
+    )
+
+l1 = 0
+l2 = 0
+l3 = 0
+
 def find_largest_root(f, fp, fpp, a=1e-2, b=1e2):
     """
     f: f(x)
@@ -28,7 +40,53 @@ def find_largest_root(f, fp, fpp, a=1e-2, b=1e2):
     # TODO: Implementieren Sie hier die Nullstellen Suche #
     #                                                     #
     #######################################################
-    return r
+    r = []
+    
+    try:
+        zeta = bisect(fpp, a, b)
+        
+        try:
+            mu1 = bisect(fp, a, zeta)
+        except:
+            r.append(bisect(f, a, zeta))
+        try:
+            mu2 = bisect(fp, zeta, b)
+        except:
+            r.append(bisect(f, zeta, b))
+        
+        try:
+            r.append(bisect(f, a, mu1))
+        except:
+            pass
+        try:
+            r.append(bisect(f, mu1, m2))
+        except:
+            pass
+        try:
+            r.append(bisect(f, mu2, b))
+        except:
+            pass
+    except:
+        try:
+            mu = bisect(fp, a, b)
+            try:
+                r.append(bisect(f, a, mu))
+            except:
+                pass
+            try:
+                r.append(bisect(f, a, mu))
+            except:
+                pass
+        except:
+            try:
+                r.append(bisect(f, a, b))
+            except:
+                pass
+    
+    #if len(r) == 0:
+    #    return bisect(f, a, b)
+        
+    return max(r)
 
 
 ########################
@@ -36,8 +94,9 @@ def find_largest_root(f, fp, fpp, a=1e-2, b=1e2):
 # TODO: Select epsilon #
 #                      #
 ########################
-eps_range = array([0.8])
+#eps_range = array([0.01,1.0])
 #eps_range = linspace(0.01, 2, 20)
+eps_range = linspace(0.01, 2, 20)
 
 # Radien und Winkel fuer alle eps und b
 # Ein array pro fixem eps Wert
@@ -46,7 +105,7 @@ r0E0 = []
 angle_eps = []
 
 for eps in eps_range:
-    bval = linspace(0, bm, n)
+    bval = linspace(0.001, bm, n)
     # Radien und Winkel fuer aktuelles eps
     r0s = []
     angle = []
@@ -62,6 +121,18 @@ for eps in eps_range:
         #       fuer das gegebene eps und b.                         #
         #                                                            #
         ##############################################################
+        #r0 = fsolve(ur0, 10, fprime=dur0)
+        r0 = find_largest_root(ur0, dur0, d2ur0)
+        dthetadr = lambda r: g(r, b, eps)
+        theta = pi - 2. * quad(dthetadr, r0, np.inf)[0]
+        # TODO: try here or correct b interval?
+        #try:
+        #    theta = pi - 2. * quad(dthetadr, r0, np.inf)[0]
+        #except ZeroDivisionError:
+        #    theta = float('nan')
+        #    print("encountered division by zero")    
+        r0s.append(r0)
+        angle.append(theta)
 
     r0E0.append(array(r0s))
     angle_eps.append(array(angle))
