@@ -14,18 +14,14 @@ U = lambda r, eps: 4*eps*((sig/r)**12 - (sig/r)**6)  # LJ potential
 dU = lambda r, eps: 24*eps*(-2*(sig/r)**13 + (sig/r)**7)
 g = lambda r, b, eps: b/(r*r*sqrt(1.0 - U(r, eps)/E0 - (b/r)**2))
 
-
-
+""""
 def F(a,b,c):
     return (
         lambda x: (x-a)*(x-b)*(x-c),
         lambda x: a*b + a*c + b*c - 2*(a + b + c)*x + 3*x**2,
         lambda x: -2*(a + b + c - 3*x)
     )
-
-l1 = 0
-l2 = 0
-l3 = 0
+"""
 
 def find_largest_root(f, fp, fpp, a=1e-2, b=1e2):
     """
