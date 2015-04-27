@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+#############################################################################
+# course:   Numerische Methoden D-PHYS
+# exercise: assignment 6
+# author:   Thomas Diggelmann <thomas.diggelmann@student.ethz.ch>
+# date:     27.04.2015
+#############################################################################
 # Molecular scattering via quadrature, Beddard pp 611-617
 # Scattering angles with Lennard-Jones potential
 from numpy import *
@@ -13,15 +20,6 @@ bm = 3.0  # max b value
 U = lambda r, eps: 4*eps*((sig/r)**12 - (sig/r)**6)  # LJ potential
 dU = lambda r, eps: 24*eps*(-2*(sig/r)**13 + (sig/r)**7)
 g = lambda r, b, eps: b/(r*r*sqrt(1.0 - U(r, eps)/E0 - (b/r)**2))
-
-""""
-def F(a,b,c):
-    return (
-        lambda x: (x-a)*(x-b)*(x-c),
-        lambda x: a*b + a*c + b*c - 2*(a + b + c)*x + 3*x**2,
-        lambda x: -2*(a + b + c - 3*x)
-    )
-"""
 
 def find_largest_root(f, fp, fpp, a=1e-2, b=1e2):
     """
@@ -79,19 +77,21 @@ def find_largest_root(f, fp, fpp, a=1e-2, b=1e2):
             except:
                 pass
     
-    #if len(r) == 0:
-    #    return bisect(f, a, b)
-        
     return max(r)
 
+########################
+#                      #
+# Select method here   #
+#                      #
+########################
+#method = "fsolve"
+method = "find_largest_root"
 
 ########################
 #                      #
 # TODO: Select epsilon #
 #                      #
 ########################
-#eps_range = array([0.01,1.0])
-#eps_range = linspace(0.01, 2, 20)
 eps_range = linspace(0.01, 2, 20)
 
 # Radien und Winkel fuer alle eps und b
@@ -117,16 +117,14 @@ for eps in eps_range:
         #       fuer das gegebene eps und b.                         #
         #                                                            #
         ##############################################################
-        #r0 = fsolve(ur0, 10, fprime=dur0)
-        r0 = find_largest_root(ur0, dur0, d2ur0)
+        if method == "fsolve":
+            r0 = fsolve(ur0, 10, fprime=dur0)
+        elif method =="find_largest_root":
+            r0 = find_largest_root(ur0, dur0, d2ur0)
+        else:
+            print("unkown method: %s" % method)
         dthetadr = lambda r: g(r, b, eps)
         theta = pi - 2. * quad(dthetadr, r0, np.inf)[0]
-        # TODO: try here or correct b interval?
-        #try:
-        #    theta = pi - 2. * quad(dthetadr, r0, np.inf)[0]
-        #except ZeroDivisionError:
-        #    theta = float('nan')
-        #    print("encountered division by zero")    
         r0s.append(r0)
         angle.append(theta)
 
@@ -142,7 +140,8 @@ xlabel('$b$')
 ylabel(r'$\theta_0$')
 legend(loc='lower left')
 grid(True)
-savefig('scattering_angle.pdf')
+title("scattering angle [method: $%s(...)$]" % method.replace("_", "\\_"))
+savefig('scattering_angle_%s.pdf' % method)
 
 figure(figsize=(10, 10))
 for eps, r0 in zip(eps_range, r0E0):
@@ -151,4 +150,5 @@ grid(True)
 xlabel('$b$')
 ylabel('$r_0$')
 legend(loc='upper left')
-savefig('minimal_distance.pdf')
+title("minimal distance [method: $%s(...)$]" % method.replace("_", "\\_"))
+savefig('minimal_distance_%s.pdf' % method)
